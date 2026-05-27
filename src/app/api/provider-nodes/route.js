@@ -86,11 +86,14 @@ export async function POST(request) {
         sanitizedBaseUrl = sanitizedBaseUrl.slice(0, -9); // remove /messages
       }
 
+      const authScheme = body.authScheme || "x-api-key";
+
       const node = await createProviderNode({
         id: `${ANTHROPIC_COMPATIBLE_PREFIX}${generateId()}`,
         type: "anthropic-compatible",
         prefix: prefix.trim(),
         baseUrl: sanitizedBaseUrl,
+        authScheme,
         name: name.trim(),
       });
       return NextResponse.json({ node }, { status: 201 });

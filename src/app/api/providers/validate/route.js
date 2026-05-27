@@ -156,14 +156,19 @@ export async function POST(request) {
           normalizedBase = normalizedBase.slice(0, -9); // remove /messages
         }
 
+        const scheme = node.authScheme || "x-api-key";
         const modelsUrl = `${normalizedBase}/models`;
+        const reqHeaders = {
+          "anthropic-version": "2023-06-01",
+        };
+        if (scheme === "bearer") {
+          reqHeaders["Authorization"] = `Bearer ${apiKey}`;
+        } else {
+          reqHeaders["x-api-key"] = apiKey;
+        }
 
         const res = await fetch(modelsUrl, {
-          headers: {
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-            "Authorization": `Bearer ${apiKey}`
-          },
+          headers: reqHeaders,
         });
 
         isValid = res.ok;

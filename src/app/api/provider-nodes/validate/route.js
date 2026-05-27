@@ -53,7 +53,7 @@ const getChatErrorMessage = (status) => {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { baseUrl, apiKey, type, modelId } = body;
+    const { baseUrl, apiKey, type, modelId, authScheme } = body;
 
     if (!baseUrl || !apiKey) {
       return NextResponse.json({ error: "Base URL and API key required" }, { status: 400 });
@@ -101,14 +101,20 @@ export async function POST(request) {
         normalizedBase = normalizedBase.slice(0, -9);
       }
 
+      const scheme = authScheme || "x-api-key";
+      const headers = {
+        "anthropic-version": "2023-06-01",
+      };
+      if (scheme === "bearer") {
+        headers["Authorization"] = `Bearer ${apiKey}`;
+      } else {
+        headers["x-api-key"] = apiKey;
+      }
+
       const modelsUrl = `${normalizedBase}/models`;
       const res = await fetchWithTimeout(modelsUrl, {
         method: "GET",
-        headers: {
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "Authorization": `Bearer ${apiKey}`
-        }
+        headers
       });
 
       if (res.ok) return NextResponse.json({ valid: true });
@@ -120,14 +126,18 @@ export async function POST(request) {
 
       // Fallback: try chat/completions if modelId provided
       if (modelId) {
+        const chatHeaders = {
+          "Content-Type": "application/json",
+          "anthropic-version": "2023-06-01",
+        };
+        if (scheme === "bearer") {
+          chatHeaders["Authorization"] = `Bearer ${apiKey}`;
+        } else {
+          chatHeaders["x-api-key"] = apiKey;
+        }
         const chatRes = await fetchWithTimeout(`${normalizedBase}/chat/completions`, {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01"
-          },
+          headers: chatHeaders,
           body: JSON.stringify({
             model: modelId,
             messages: [{ role: "user", content: "ping" }],

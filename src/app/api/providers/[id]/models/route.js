@@ -381,15 +381,20 @@ export async function GET(request, { params }) {
         baseUrl = baseUrl.slice(0, -9);
       }
 
+      const scheme = connection.providerSpecificData?.authScheme || "x-api-key";
       const url = `${baseUrl}/models`;
+      const fetchHeaders = {
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+      };
+      if (scheme === "bearer") {
+        fetchHeaders["Authorization"] = `Bearer ${connection.apiKey}`;
+      } else {
+        fetchHeaders["x-api-key"] = connection.apiKey;
+      }
       const response = await fetch(url, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": connection.apiKey,
-          "anthropic-version": "2023-06-01",
-          "Authorization": `Bearer ${connection.apiKey}`
-        },
+        headers: fetchHeaders,
       });
 
       if (!response.ok) {

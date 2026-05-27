@@ -81,9 +81,13 @@ async function fetchCompatibleModelIds(connection) {
     } else if (url.endsWith("/messages")) {
       url = `${url.slice(0, -9)}/models`;
     }
-    headers["x-api-key"] = connection.apiKey;
+    const scheme = connection.providerSpecificData?.authScheme || "x-api-key";
+    if (scheme === "bearer") {
+      headers.Authorization = `Bearer ${connection.apiKey}`;
+    } else {
+      headers["x-api-key"] = connection.apiKey;
+    }
     headers["anthropic-version"] = "2023-06-01";
-    headers.Authorization = `Bearer ${connection.apiKey}`;
   } else {
     return [];
   }

@@ -126,8 +126,13 @@ export class DefaultExecutor extends BaseExecutor {
         break;
       default:
         if (this.provider?.startsWith?.("anthropic-compatible-")) {
+          const authScheme = credentials?.providerSpecificData?.authScheme || "x-api-key";
           if (credentials.apiKey) {
-            headers["x-api-key"] = credentials.apiKey;
+            if (authScheme === "bearer") {
+              headers["Authorization"] = `Bearer ${credentials.apiKey}`;
+            } else {
+              headers["x-api-key"] = credentials.apiKey;
+            }
           } else if (credentials.accessToken) {
             headers["Authorization"] = `Bearer ${credentials.accessToken}`;
           }
