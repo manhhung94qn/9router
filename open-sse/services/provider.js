@@ -219,10 +219,13 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
   // Add auth header
   // Specific override for Anthropic Compatible
   if (isAnthropicCompatible(provider)) {
+    const authScheme = credentials?.providerSpecificData?.authScheme || "x-api-key";
     if (credentials.apiKey) {
-      headers["x-api-key"] = credentials.apiKey;
-      // Do NOT send Authorization header when apiKey is present for Anthropic Compatible
-      // as it causes issues with some providers (e.g. opencode.ai)
+      if (authScheme === "bearer") {
+        headers["Authorization"] = `Bearer ${credentials.apiKey}`;
+      } else {
+        headers["x-api-key"] = credentials.apiKey;
+      }
     } else if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     }

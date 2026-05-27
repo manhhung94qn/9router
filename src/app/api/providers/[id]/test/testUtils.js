@@ -356,8 +356,15 @@ async function testApiKeyConnection(connection, effectiveProxy = null) {
     try {
       modelsBase = modelsBase.replace(/\/$/, "");
       if (modelsBase.endsWith("/messages")) modelsBase = modelsBase.slice(0, -9);
+      const scheme = connection.providerSpecificData?.authScheme || "x-api-key";
+      const testHeaders = { "anthropic-version": "2023-06-01" };
+      if (scheme === "bearer") {
+        testHeaders["Authorization"] = `Bearer ${connection.apiKey}`;
+      } else {
+        testHeaders["x-api-key"] = connection.apiKey;
+      }
       const res = await fetchWithConnectionProxy(`${modelsBase}/models`, {
-        headers: { "x-api-key": connection.apiKey, "anthropic-version": "2023-06-01", "Authorization": `Bearer ${connection.apiKey}` },
+        headers: testHeaders,
       }, effectiveProxy);
       return { valid: res.ok, error: res.ok ? null : "Invalid API key or base URL" };
     } catch (err) {

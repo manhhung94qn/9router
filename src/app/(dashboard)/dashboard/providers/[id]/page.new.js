@@ -1582,6 +1582,7 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
     prefix: "",
     apiType: "chat",
     baseUrl: "https://api.openai.com/v1",
+    authScheme: "x-api-key",
   });
   const [saving, setSaving] = useState(false);
   const [checkKey, setCheckKey] = useState("");
@@ -1595,6 +1596,7 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
         prefix: node.prefix || "",
         apiType: node.apiType || "chat",
         baseUrl: node.baseUrl || (isAnthropic ? "https://api.anthropic.com/v1" : "https://api.openai.com/v1"),
+        authScheme: node.authScheme || "x-api-key",
       });
     }
   }, [node, isAnthropic]);
@@ -1616,6 +1618,9 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
       if (!isAnthropic) {
         payload.apiType = formData.apiType;
       }
+      if (isAnthropic) {
+        payload.authScheme = formData.authScheme;
+      }
       await onSave(payload);
     } finally {
       setSaving(false);
@@ -1631,7 +1636,8 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
         body: JSON.stringify({
           baseUrl: formData.baseUrl,
           apiKey: checkKey,
-          type: isAnthropic ? "anthropic-compatible" : "openai-compatible"
+          type: isAnthropic ? "anthropic-compatible" : "openai-compatible",
+          ...(isAnthropic ? { authScheme: formData.authScheme } : {}),
         }),
       });
       const data = await res.json();
@@ -1677,6 +1683,18 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
           placeholder={isAnthropic ? "https://api.anthropic.com/v1" : "https://api.openai.com/v1"}
           hint={`Use the base URL (ending in /v1) for your ${isAnthropic ? "Anthropic" : "OpenAI"}-compatible API.`}
         />
+        {isAnthropic && (
+          <Select
+            label="Auth Scheme"
+            options={[
+              { value: "x-api-key", label: "x-api-key (Anthropic standard)" },
+              { value: "bearer", label: "Authorization: Bearer (OpenAI-style)" },
+            ]}
+            value={formData.authScheme}
+            onChange={(e) => setFormData({ ...formData, authScheme: e.target.value })}
+            hint="How the API key is sent. Some providers (e.g., Inferstack) require Bearer token auth."
+          />
+        )}
         <div className="flex gap-2">
           <Input
             label="API Key (for Check)"

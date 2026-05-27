@@ -47,9 +47,14 @@ export class BaseExecutor {
     };
 
     if (this.provider?.startsWith?.("anthropic-compatible-")) {
-      // Anthropic-compatible providers use x-api-key header
+      // Use authScheme from providerSpecificData; default to x-api-key for backward compatibility
+      const authScheme = credentials?.providerSpecificData?.authScheme || "x-api-key";
       if (credentials.apiKey) {
-        headers["x-api-key"] = credentials.apiKey;
+        if (authScheme === "bearer") {
+          headers["Authorization"] = `Bearer ${credentials.apiKey}`;
+        } else {
+          headers["x-api-key"] = credentials.apiKey;
+        }
       } else if (credentials.accessToken) {
         headers["Authorization"] = `Bearer ${credentials.accessToken}`;
       }

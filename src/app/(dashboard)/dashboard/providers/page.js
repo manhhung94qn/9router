@@ -1041,6 +1041,7 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
     name: "",
     prefix: "",
     baseUrl: "https://api.anthropic.com/v1",
+    authScheme: "x-api-key",
   });
   const [submitting, setSubmitting] = useState(false);
   const [checkKey, setCheckKey] = useState("");
@@ -1073,6 +1074,7 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           prefix: formData.prefix,
           baseUrl: formData.baseUrl,
           type: "anthropic-compatible",
+          authScheme: formData.authScheme,
         }),
       });
       const data = await res.json();
@@ -1082,6 +1084,7 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           name: "",
           prefix: "",
           baseUrl: "https://api.anthropic.com/v1",
+          authScheme: "x-api-key",
         });
         setCheckKey("");
         setValidationResult(null);
@@ -1104,6 +1107,7 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           apiKey: checkKey,
           type: "anthropic-compatible",
           modelId: checkModelId.trim() || undefined,
+          authScheme: formData.authScheme,
         }),
       });
       const data = await res.json();
@@ -1165,6 +1169,16 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           }
           placeholder="https://api.anthropic.com/v1"
           hint="Use the base URL (ending in /v1) for your Anthropic-compatible API. The system will append /messages."
+        />
+        <Select
+          label="Auth Scheme"
+          options={[
+            { value: "x-api-key", label: "x-api-key (Anthropic standard)" },
+            { value: "bearer", label: "Authorization: Bearer (OpenAI-style)" },
+          ]}
+          value={formData.authScheme}
+          onChange={(e) => setFormData({ ...formData, authScheme: e.target.value })}
+          hint="How the API key is sent in requests. Most Anthropic-compatible providers use x-api-key. Some (like Inferstack) require Bearer token auth."
         />
         <Input
           label="API Key (for Check)"
