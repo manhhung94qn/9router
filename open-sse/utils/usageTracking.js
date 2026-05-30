@@ -16,7 +16,7 @@ export const COLORS = {
 };
 
 // Buffer tokens to prevent context errors
-const BUFFER_TOKENS = 2000;
+const BUFFER_TOKENS = parseInt(process.env.BUFFER_TOKENS ?? "2000", 10);
 
 // Get HH:MM:SS timestamp
 function getTimeString() {
