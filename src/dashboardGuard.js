@@ -29,6 +29,8 @@ const PUBLIC_API_PATHS = [
   "/api/auth/oidc",
   "/api/version",
   "/api/settings/require-login",
+  "/api/cli-tools/codex-setup",
+  "/api/cli-tools/claude-setup",
 ];
 
 // Public top-level prefixes (LLM API endpoints with their own API key auth).

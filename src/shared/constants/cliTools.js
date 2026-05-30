@@ -108,6 +108,11 @@ export const CLI_TOOLS = {
     color: "#10A37F",
     description: "OpenAI Codex CLI",
     configType: "custom",
+    defaultModels: [
+      { id: "small", name: "Small (Fast)", alias: "small", defaultValue: "" },
+      { id: "medium", name: "Medium (Default)", alias: "medium", defaultValue: "" },
+      { id: "large", name: "Large (Powerful)", alias: "large", defaultValue: "" },
+    ],
   },
   opencode: {
     id: "opencode",
