@@ -5,7 +5,10 @@ import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/comp
 import Image from "next/image";
 import BaseUrlSelect from "./BaseUrlSelect";
 import ApiKeySelect from "./ApiKeySelect";
+import CodexAutoSetupModal from "./CodexAutoSetupModal";
 import { matchKnownEndpoint } from "./cliEndpointMatch";
+
+const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
 export default function CodexToolCard({ tool, isExpanded, onToggle, baseUrl, apiKeys, activeProviders, cloudEnabled, initialStatus, tunnelEnabled, tunnelPublicUrl, tailscaleEnabled, tailscaleUrl }) {
   const [codexStatus, setCodexStatus] = useState(initialStatus || null);
@@ -21,7 +24,9 @@ export default function CodexToolCard({ tool, isExpanded, onToggle, baseUrl, api
   const [subagentModalOpen, setSubagentModalOpen] = useState(false);
   const [modelAliases, setModelAliases] = useState({});
   const [showManualConfigModal, setShowManualConfigModal] = useState(false);
+  const [showAutoSetupModal, setShowAutoSetupModal] = useState(false);
   const [customBaseUrl, setCustomBaseUrl] = useState("");
+  const [codexModelMappings, setCodexModelMappings] = useState({});
 
   useEffect(() => {
     if (apiKeys?.length > 0 && !selectedApiKey) {
@@ -233,7 +238,11 @@ model = "${effectiveSubagentModel}"
                     <p className="text-sm text-text-muted">Manual configuration is still available if 9router is deployed on a remote server.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 pl-9">
+                <div className="flex flex-wrap items-center gap-2 pl-9">
+                  <Button variant="primary" size="sm" onClick={() => setShowAutoSetupModal(true)}>
+                    <span className="material-symbols-outlined text-[18px] mr-1">bolt</span>
+                    Automatic Setup
+                  </Button>
                   <Button variant="secondary" size="sm" onClick={() => setShowManualConfigModal(true)} className="!bg-yellow-500/20 !border-yellow-500/40 !text-yellow-700 dark:!text-yellow-300 hover:!bg-yellow-500/30">
                     <span className="material-symbols-outlined text-[18px] mr-1">content_copy</span>
                     Manual Config
@@ -355,12 +364,15 @@ model = "${effectiveSubagentModel}"
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center">
+              <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:flex-wrap">
                 <Button variant="primary" size="sm" onClick={handleApplySettings} disabled={(!selectedApiKey && (cloudEnabled && apiKeys.length > 0)) || !selectedModel} loading={applying}>
                   <span className="material-symbols-outlined text-[14px] mr-1">save</span>Apply
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleResetSettings} disabled={restoring} loading={restoring}>
                   <span className="material-symbols-outlined text-[14px] mr-1">restore</span>Reset
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowAutoSetupModal(true)}>
+                  <span className="material-symbols-outlined text-[14px] mr-1">bolt</span>Automatic Setup
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setShowManualConfigModal(true)}>
                   <span className="material-symbols-outlined text-[14px] mr-1">content_copy</span>Manual Config
@@ -396,6 +408,31 @@ model = "${effectiveSubagentModel}"
         onClose={() => setShowManualConfigModal(false)}
         title="Codex CLI - Manual Configuration"
         configs={getManualConfigs()}
+      />
+
+      <CodexAutoSetupModal
+        isOpen={showAutoSetupModal}
+        onClose={() => setShowAutoSetupModal(false)}
+        tool={tool}
+        baseUrl={getEffectiveBaseUrl()}
+        selectedApiKey={selectedApiKey}
+        onSelectedApiKeyChange={setSelectedApiKey}
+        apiKeys={apiKeys}
+        cloudEnabled={cloudEnabled}
+        modelMappings={{
+          small: codexModelMappings.small || selectedModel,
+          medium: codexModelMappings.medium || selectedModel,
+          large: codexModelMappings.large || subagentModel || selectedModel,
+        }}
+        onModelMappingChange={(alias, value) => {
+          setCodexModelMappings(prev => ({ ...prev, [alias]: value }));
+          if (alias === "small") setSelectedModel(value);
+          else if (alias === "medium") setSelectedModel(value);
+          else if (alias === "large") setSubagentModel(value);
+        }}
+        activeProviders={activeProviders}
+        hasActiveProviders={activeProviders?.length > 0}
+        modelAliases={modelAliases}
       />
     </Card>
   );
