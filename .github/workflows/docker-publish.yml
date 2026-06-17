@@ -12,6 +12,8 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.version }}
     permissions:
       contents: read
       packages: write
@@ -49,3 +51,16 @@ jobs:
           platforms: linux/amd64,linux/arm64
           provenance: false
           sbom: false
+
+  deploy:
+    name: Deploy
+    needs: build-and-push
+    if: success()
+    runs-on: ubuntu-latest
+    environment: Production
+
+    steps:
+      - name: Deploy to Production
+        run: |
+          curl -f -s -X POST \
+            "${{ secrets.PORTAINER_WEBHOOK }}?tag=${{ needs.build-and-push.outputs.image-tag }}"
