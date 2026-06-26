@@ -63,4 +63,6 @@ jobs:
       - name: Deploy to Production
         run: |
           curl -f -s -X POST \
+            -H "CF-Access-Client-Id: ${{ secrets.CF_ACCESS_CLIENT_ID }}" \
+            -H "CF-Access-Client-Secret: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}" \
             "${{ secrets.PORTAINER_WEBHOOK }}?SERVICE_TAG=${{ needs.build-and-push.outputs.image-tag }}"
